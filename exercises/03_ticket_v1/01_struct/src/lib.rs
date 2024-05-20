@@ -4,6 +4,21 @@
 //
 // It should also have a method named `is_available` that returns a `true` if the quantity is
 // greater than 0, otherwise `false`.
+struct Order {
+    price: u16,
+    quantity: u8
+}
+
+impl Order {
+    fn is_available(self) -> bool {
+        self.quantity > 0
+    }
+
+    fn associated_func() -> () {
+        println!("called associated func")
+    }
+    
+}
 
 #[cfg(test)]
 mod tests {
@@ -15,6 +30,7 @@ mod tests {
             price: 100,
             quantity: 10,
         };
+        Order::associated_func();
         assert!(order.is_available());
     }
 

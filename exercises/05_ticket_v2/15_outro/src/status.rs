@@ -1,10 +1,50 @@
+use std::fmt::Display;
+
 // TODO: Implement `TryFrom<String>` and `TryFrom<&str>` for the `Status` enum.
 //  The parsing should be case-insensitive.
+use thiserror::Error;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Status {
     ToDo,
     InProgress,
     Done,
+}
+
+
+#[derive(Debug, Error)]
+pub struct ParsingError {
+    invalid_status: String
+}
+
+impl Display for ParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+       write!(f, "{}", self)
+    }
+}
+
+impl TryFrom<String> for Status {
+    type Error = ParsingError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.to_lowercase().as_str() {
+            "todo" => { Ok(Status::ToDo) },
+            "inprogress" => { Ok(Status::InProgress) },
+            "done" => { Ok(Status::Done) },
+            _ => { Err(ParsingError { invalid_status: value })}
+        }
+    }
+}
+
+impl TryFrom<&str> for Status {
+    type Error = ParsingError;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value.to_lowercase().as_str() {
+            "todo" => { Ok(Status::ToDo) },
+            "inprogress" => { Ok(Status::InProgress) },
+            "done" => { Ok(Status::Done) },
+            _ => { Err(ParsingError { invalid_status: value.to_string() })}
+        }
+    }
 }
 
 #[cfg(test)]

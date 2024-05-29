@@ -7,6 +7,7 @@ pub struct TicketStore {
     tickets: Vec<Ticket>,
 }
 
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ticket {
     pub title: TicketTitle,
@@ -30,6 +31,17 @@ impl TicketStore {
 
     pub fn add_ticket(&mut self, ticket: Ticket) {
         self.tickets.push(ticket);
+    }
+
+    /* 
+    * Elision rules imply that the lifetime of the Iter returned by iter() is
+    * tied to the lifetime of the &self reference. You can think of '_ as a
+    * placeholder for the lifetime of the &self reference.
+    */
+    pub fn to_dos(&self) -> Vec<&'_ Ticket> {
+        self.tickets.iter()
+            .filter(|&ticket| ticket.status == Status::ToDo)
+            .collect()
     }
 }
 

@@ -2,11 +2,22 @@
 //  Then split the resulting static slice into two halves and
 //  sum each half in a separate thread.
 //  Hint: check out `Vec::leak`.
-
 use std::thread;
 
 pub fn sum(v: Vec<i32>) -> i32 {
-    todo!()
+    let leaked = v.leak();
+    let mid = leaked.len() / 2;
+    let (half1, half2) = leaked.split_at(mid);
+
+    let th1 = thread::spawn(move || {
+        half1.iter().sum::<i32>()
+    });
+
+    let th2 = thread::spawn(move || {
+        half2.iter().sum::<i32>()
+    });
+    
+    th1.join().unwrap() + th2.join().unwrap()
 }
 
 #[cfg(test)]

@@ -4,7 +4,29 @@
 use std::thread;
 
 pub fn sum(slice: &'static [i32]) -> i32 {
-    todo!()
+    let n = slice.len();
+    let half1: &'static [i32] = &slice[0..n/2];
+    let half2: &'static [i32] = &slice[n/2..];
+
+    let thr1 = thread::spawn(move || {
+        let mut total = 0;
+        for i in half1 {
+            total += i;
+        }
+        total
+    });
+
+    let thr2 = thread::spawn(move || {
+        let mut total = 0;
+        for i in half2 {
+            total += i;
+        }
+        total
+    });
+
+    let sum1 = thr1.join().unwrap();
+    let sum2 = thr2.join().unwrap();
+    sum1 + sum2
 }
 
 #[cfg(test)]
@@ -24,8 +46,7 @@ mod tests {
     }
 
     #[test]
-    fn five() {
-        static ARRAY: [i32; 5] = [1, 2, 3, 4, 5];
+    fn five() { static ARRAY: [i32; 5] = [1, 2, 3, 4, 5];
         assert_eq!(sum(&ARRAY), 15);
     }
 

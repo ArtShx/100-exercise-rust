@@ -4,7 +4,9 @@
 ///  the testing code too, yes).
 ///
 /// Can you understand the sequence of events that can lead to a deadlock?
-use std::sync::mpsc;
+// use std::sync::mpsc;
+use tokio::sync::mpsc;
+
 
 pub struct Message {
     payload: String,
@@ -14,16 +16,17 @@ pub struct Message {
 /// Replies with `pong` to any message it receives, setting up a new
 /// channel to continue communicating with the caller.
 pub async fn pong(mut receiver: mpsc::Receiver<Message>) {
+    println!("in pong");
     loop {
-        if let Ok(msg) = receiver.recv() {
+        if let Some(msg) = receiver.recv().await {
             println!("Pong received: {}", msg.payload);
-            let (sender, new_receiver) = mpsc::channel();
+            let (sender, new_receiver) = mpsc::channel(1);
             msg.response_channel
                 .send(Message {
                     payload: "pong".into(),
                     response_channel: sender,
-                })
-                .unwrap();
+                }).await;
+                // .unwrap();
             receiver = new_receiver;
         }
     }
@@ -32,22 +35,27 @@ pub async fn pong(mut receiver: mpsc::Receiver<Message>) {
 #[cfg(test)]
 mod tests {
     use crate::{pong, Message};
-    use std::sync::mpsc;
+    // use std::sync::mpsc;
+    use tokio::sync::mpsc;
 
     #[tokio::test]
     async fn ping() {
-        let (sender, receiver) = mpsc::channel();
-        let (response_sender, response_receiver) = mpsc::channel();
+        let (sender, receiver) = mpsc::channel(1);
+        let (response_sender, mut response_receiver) = mpsc::channel(1);
         sender
             .send(Message {
                 payload: "pong".into(),
                 response_channel: response_sender,
-            })
-            .unwrap();
+            }).await;
+            // .unwrap();
 
+        println!("Sending msg");
         tokio::spawn(pong(receiver));
 
-        let answer = response_receiver.recv().unwrap().payload;
+        let answer = match response_receiver.recv().await {
+            Some(data) => data.payload,
+            None => "".to_string()
+        };
         assert_eq!(answer, "pong");
     }
 }
